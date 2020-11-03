@@ -28,7 +28,7 @@ func _ready():
 	var frames = []
 	for i in range(5):
 		noise.seed = i
-		frames.append(noise.get_image(256, 256))
+		frames.append(noise.get_image(1920, 1080))
 	write_png(frames)
 
 
@@ -38,16 +38,15 @@ func _ready():
 var sequence = 0
 func next_sequence():
 	sequence += 1
-	print(sequence)
 	return sequence
 
 
 func write_png(frames: Array):
+	sequence = 0
 	
 	var data = PoolByteArray(PNG_SIGNATURE)
 	
 	var first_frame: Image = frames[0]
-	print("format" + str(first_frame.get_format()))
 	
 	data.append_array(get_chunk(ChunkType.IHDR, get_IHDR(first_frame.get_width(), first_frame.get_height(), 8, ColorType.TRUECOLOR_ALPHA)))
 	
@@ -119,7 +118,6 @@ func get_chunk(chunk_type: int, chunk_data: PoolByteArray) -> PoolByteArray:
 	
 	# length
 	chunk.append_array(get_length(chunk_data))
-	print(array2int(get_length(chunk_data)))
 	
 	var type_and_data = get_chunk_type_field(chunk_type)
 	type_and_data.append_array(chunk_data)

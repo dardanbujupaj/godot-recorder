@@ -15,7 +15,7 @@ _global_script_class_icons={
 
 [application]
 
-config/name="screen-recorder"
+config/name="godot-recorder"
 config/icon="res://icon.png"
 
 [rendering]

@@ -23,6 +23,10 @@ enum ColorType {
 }
 
 
+func _ready():
+	make_crc_table()
+
+
 var sequence = 0
 func next_sequence():
 	sequence += 1
@@ -41,16 +45,13 @@ func write_png(frames: Array, framerate: int):
 	thread.start(self, "_write_png_task", userdata)
 
 
+# Task for the png writing Thread
 func _write_png_task(userdata: Dictionary):
 	var frames = userdata.frames
 	var framerate = userdata.framerate
 	
 	var start = OS.get_ticks_msec()
 	
-	for im in frames:
-		im.shrink_x2()
-		im.convert(Image.FORMAT_RGBA8)
-		im.flip_y()
 	
 	print("preprocessing %dms" % (OS.get_ticks_msec() - start))
 	
@@ -152,23 +153,38 @@ func get_chunk_type_field(chunk_type: int) -> PoolByteArray:
 	
 	return type_name.to_ascii()
 	
-	
+
+var crc_table = []
+
+# Make the table for a ultra fast CRC
+# crc table from https://www.w3.org/TR/PNG-CRCAppendix.html
+func make_crc_table() -> void:
+	var start = OS.get_ticks_msec()
+	var c: int = 0
+	for n in range(256):
+		c = n
+		for k in range(8):
+			if c & 1:
+				c = 0xedb88320 ^ (c >> 1)
+			else:
+				c = c >> 1;
+		crc_table.append(c)
+		
+		
+
+
 # Calculate the Cyclic redundancy check for a byte array
 # https://en.wikipedia.org/wiki/Cyclic_redundancy_check#CRC-32_algorithm
 # https://lxp32.github.io/docs/a-simple-example-crc32-calculation/
 func get_crc(data: PoolByteArray) -> PoolByteArray:
+	
 	var crc = 0xFFFFFFFF
 	
-	for ch in data:
-		for _i in range(8):
-			var b = (crc ^ ch) & 1
-			crc >>= 1
-			if b:
-				crc = crc ^ 0xEDB88320
-			ch >>= 1
+	for n in range(data.size()):
+		crc = crc_table[(crc ^ data[n]) & 0xff] ^ (crc >> 8);
+
 	
 	crc = crc ^ 0xFFFFFFFF
-	
 	return int2array(crc, 4)
 
 

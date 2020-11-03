@@ -23,33 +23,37 @@ enum ColorType {
 }
 
 
-var thread = Thread.new()
-
-# Called when the node enters the scene tree for the first time.
-func _ready():
-	var noise = OpenSimplexNoise.new()
-	var frames = []
-	for i in range(30):
-		noise.seed = i
-		frames.append(noise.get_image(1920, 1080))
-	for im in frames:
-		im.shrink_x2()
-	thread.start(self, "write_png", frames)
-
-
-func _exit_tree():
-	thread.wait_to_finish()
-
-
 var sequence = 0
 func next_sequence():
 	sequence += 1
 	return sequence
 
+var thread
 
 # 
-func write_png(frames: Array):
+func write_png(frames: Array, framerate: int):
+	var userdata = {
+		"frames": frames,
+		"framerate": framerate
+	}
+	
+	thread = Thread.new()
+	thread.start(self, "_write_png_task", userdata)
+
+
+func _write_png_task(userdata: Dictionary):
+	var frames = userdata.frames
+	var framerate = userdata.framerate
+	
 	var start = OS.get_ticks_msec()
+	
+	for im in frames:
+		im.shrink_x2()
+		im.convert(Image.FORMAT_RGBA8)
+		im.flip_y()
+	
+	print("preprocessing %dms" % (OS.get_ticks_msec() - start))
+	
 	sequence = 0
 	
 	var data = PoolByteArray(PNG_SIGNATURE)
@@ -59,14 +63,14 @@ func write_png(frames: Array):
 	data.append_array(get_chunk(ChunkType.IHDR, get_IHDR(first_frame.get_width(), first_frame.get_height(), 8, ColorType.TRUECOLOR_ALPHA)))
 	
 	data.append_array(get_chunk(ChunkType.acTL, get_acTL(frames.size())))
-	data.append_array(get_chunk(ChunkType.fcTL, get_fcTL(0, first_frame.get_width(), first_frame.get_height())))
+	data.append_array(get_chunk(ChunkType.fcTL, get_fcTL(0, first_frame.get_width(), first_frame.get_height(), framerate)))
 	
 	
 	data.append_array(get_chunk(ChunkType.IDAT, get_png_datastream(first_frame)))
 	
 	for i in range(1, frames.size()):
 		var next_frame = frames[i]
-		data.append_array(get_chunk(ChunkType.fcTL, get_fcTL(next_sequence(), next_frame.get_width(), next_frame.get_height())))
+		data.append_array(get_chunk(ChunkType.fcTL, get_fcTL(next_sequence(), next_frame.get_width(), next_frame.get_height(), framerate)))
 		var frame_data = int2array(next_sequence(), 4)
 		frame_data.append_array(get_png_datastream(next_frame))
 		data.append_array(get_chunk(ChunkType.fdAT, frame_data))
@@ -106,7 +110,7 @@ func get_acTL(num_frames: int, num_plays: int = 0) -> PoolByteArray:
 	return actl
 
 
-func get_fcTL(sequence_number: int, width: int, height: int) -> PoolByteArray:
+func get_fcTL(sequence_number: int, width: int, height: int, framerate: int) -> PoolByteArray:
 	var fctl = PoolByteArray()
 	
 	fctl.append_array(int2array(sequence_number, 4)) # sequence_number
@@ -115,7 +119,7 @@ func get_fcTL(sequence_number: int, width: int, height: int) -> PoolByteArray:
 	fctl.append_array(int2array(0, 4)) # x_offset
 	fctl.append_array(int2array(0, 4)) # y_offset
 	fctl.append_array(int2array(1, 2)) # delay_num
-	fctl.append_array(int2array(10, 2)) # delay_den
+	fctl.append_array(int2array(framerate, 2)) # delay_den
 	fctl.append(0) # dispose_op
 	fctl.append(0) # dispose_op
 	

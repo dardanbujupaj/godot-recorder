@@ -22,15 +22,22 @@ enum ColorType {
 }
 
 
+var thread = Thread.new()
+
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	var noise = OpenSimplexNoise.new()
 	var frames = []
-	for i in range(5):
+	for i in range(30):
 		noise.seed = i
 		frames.append(noise.get_image(1920, 1080))
-	write_png(frames)
+	for im in frames:
+		im.shrink_x2()
+	thread.start(self, "write_png", frames)
 
+
+func _exit_tree():
+	thread.wait_to_finish()
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 #func _process(delta):
@@ -42,6 +49,7 @@ func next_sequence():
 
 
 func write_png(frames: Array):
+	var start = OS.get_ticks_msec()
 	sequence = 0
 	
 	var data = PoolByteArray(PNG_SIGNATURE)
@@ -71,6 +79,7 @@ func write_png(frames: Array):
 	file.open("res://test.png", File.WRITE)
 	file.store_buffer(data)
 	file.close()
+	print("png written after %dms" % (OS.get_ticks_msec() - start))
 
 
 

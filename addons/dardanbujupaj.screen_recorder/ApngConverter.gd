@@ -13,6 +13,7 @@ enum ChunkType {
 	fdAT
 }
 
+
 enum ColorType {
 	GREYSCALE = 0,
 	TRUECOLOR = 2
@@ -32,9 +33,7 @@ func _ready():
 	write_png(frames)
 
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-#func _process(delta):
-#	pass
+
 var sequence = 0
 func next_sequence():
 	sequence += 1
@@ -42,6 +41,7 @@ func next_sequence():
 	return sequence
 
 
+# 
 func write_png(frames: Array):
 	
 	var data = PoolByteArray(PNG_SIGNATURE)
@@ -97,6 +97,7 @@ func get_acTL(num_frames: int, num_plays: int = 0) -> PoolByteArray:
 	
 	return actl
 
+
 func get_fcTL(sequence_number: int, width: int, height: int) -> PoolByteArray:
 	var fctl = PoolByteArray()
 	
@@ -111,6 +112,7 @@ func get_fcTL(sequence_number: int, width: int, height: int) -> PoolByteArray:
 	fctl.append(0) # dispose_op
 	
 	return fctl
+
 
 # Each chunk consists of 3 or 4 fields
 # Length, Chunk Type, [Chunk Data], CRC
@@ -140,7 +142,7 @@ func get_chunk_type_field(chunk_type: int) -> PoolByteArray:
 	return type_name.to_ascii()
 	
 	
-# 
+# Calculate the Cyclic redundancy check for a byte array
 # https://en.wikipedia.org/wiki/Cyclic_redundancy_check#CRC-32_algorithm
 # https://lxp32.github.io/docs/a-simple-example-crc32-calculation/
 func get_crc(data: PoolByteArray) -> PoolByteArray:
@@ -159,12 +161,16 @@ func get_crc(data: PoolByteArray) -> PoolByteArray:
 	return int2array(crc, 4)
 
 
+# get the length of a chunk as 4 byte byte array
 func get_length(data: PoolByteArray) -> PoolByteArray:
 	var length = data.size()
 	
 	return int2array(length, 4)
 
 
+# convert an integer to a PoolByteArray representation
+# value: the value to convert
+# num_bytes: the number of bytes to convert to
 func int2array(value: int, num_bytes: int) -> PoolByteArray:
 	var array = PoolByteArray()
 	
@@ -173,7 +179,9 @@ func int2array(value: int, num_bytes: int) -> PoolByteArray:
 	
 	array.invert()
 	return array
-	
+
+
+# convert a number from byte array presentation to an integer
 func array2int(array: PoolByteArray) -> int:
 	var value = 0
 	array.invert()
@@ -183,6 +191,7 @@ func array2int(array: PoolByteArray) -> int:
 	
 	
 	return value
+
 
 # creates a png datastream from an image
 func get_png_datastream(image: Image, filter_type: int = 0) -> PoolByteArray:

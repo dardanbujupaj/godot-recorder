@@ -32,3 +32,4 @@ texture = ExtResource( 3 )
 [node name="AnimationPlayer" type="AnimationPlayer" parent="icon"]
 autoplay = "default"
 anims/default = SubResource( 1 )
+[connection signal="update_progress" from="ApngConverter" to="." method="_on_ApngConverter_update_progress"]

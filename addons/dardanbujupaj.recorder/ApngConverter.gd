@@ -1,5 +1,7 @@
 extends Node
 
+signal update_progress
+
 const PNG_SIGNATURE = [137, 80, 78, 71, 13, 10, 26, 10]
 
 
@@ -36,19 +38,6 @@ var thread
 
 # 
 func write_png(frames: Array, framerate: int):
-	var userdata = {
-		"frames": frames,
-		"framerate": framerate
-	}
-	
-	thread = Thread.new()
-	thread.start(self, "_write_png_task", userdata)
-
-
-# Task for the png writing Thread
-func _write_png_task(userdata: Dictionary):
-	var frames = userdata.frames
-	var framerate = userdata.framerate
 	
 	var start = OS.get_ticks_msec()
 	
@@ -69,12 +58,16 @@ func _write_png_task(userdata: Dictionary):
 	
 	data.append_array(get_chunk(ChunkType.IDAT, get_png_datastream(first_frame)))
 	
+	emit_signal("update_progress", "1/%d frames converted" % frames.size())
+	
 	for i in range(1, frames.size()):
 		var next_frame = frames[i]
 		data.append_array(get_chunk(ChunkType.fcTL, get_fcTL(next_sequence(), next_frame.get_width(), next_frame.get_height(), framerate)))
 		var frame_data = int2array(next_sequence(), 4)
 		frame_data.append_array(get_png_datastream(next_frame))
 		data.append_array(get_chunk(ChunkType.fdAT, frame_data))
+		
+		emit_signal("update_progress", "%d/%d frames converted" % [i, frames.size()])
 		
 	
 	

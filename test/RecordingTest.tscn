@@ -30,8 +30,6 @@ autoplay = "default"
 anims/default = SubResource( 1 )
 
 [node name="Recorder" parent="." instance=ExtResource( 2 )]
-framerate = 60.0
-color_type = 6
 
 [node name="icon" type="Sprite" parent="."]
 position = Vector2( 410.582, 230.6 )

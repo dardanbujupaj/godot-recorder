@@ -18,6 +18,10 @@ _global_script_class_icons={
 config/name="godot-recorder"
 config/icon="res://icon.png"
 
+[display]
+
+window/size/fullscreen=true
+
 [input]
 
 start_recording={

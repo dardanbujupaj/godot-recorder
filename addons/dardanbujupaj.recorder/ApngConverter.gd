@@ -37,12 +37,8 @@ func next_sequence():
 var thread
 
 # 
-func write_png(frames: Array, framerate: int):
-	
+func write_png(frames: Array, color_type: int, framerate: float):
 	var start = OS.get_ticks_msec()
-	
-	
-	print("preprocessing %dms" % (OS.get_ticks_msec() - start))
 	
 	sequence = 0
 	
@@ -50,7 +46,7 @@ func write_png(frames: Array, framerate: int):
 	
 	var first_frame: Image = frames[0]
 	
-	data.append_array(get_chunk(ChunkType.IHDR, get_IHDR(first_frame.get_width(), first_frame.get_height(), 8, ColorType.TRUECOLOR_ALPHA)))
+	data.append_array(get_chunk(ChunkType.IHDR, get_IHDR(first_frame.get_width(), first_frame.get_height(), 8, color_type)))
 	
 	data.append_array(get_chunk(ChunkType.acTL, get_acTL(frames.size())))
 	data.append_array(get_chunk(ChunkType.fcTL, get_fcTL(0, first_frame.get_width(), first_frame.get_height(), framerate)))
@@ -58,16 +54,25 @@ func write_png(frames: Array, framerate: int):
 	
 	data.append_array(get_chunk(ChunkType.IDAT, get_png_datastream(first_frame)))
 	
-	emit_signal("update_progress", "1/%d frames converted" % frames.size())
+	emit_signal("update_progress", {
+		"step": "Writing frames",
+		"value": 1,
+		"max_value": frames.size()
+	})
 	
 	for i in range(1, frames.size()):
 		var next_frame = frames[i]
 		data.append_array(get_chunk(ChunkType.fcTL, get_fcTL(next_sequence(), next_frame.get_width(), next_frame.get_height(), framerate)))
+		
 		var frame_data = int2array(next_sequence(), 4)
 		frame_data.append_array(get_png_datastream(next_frame))
 		data.append_array(get_chunk(ChunkType.fdAT, frame_data))
 		
-		emit_signal("update_progress", "%d/%d frames converted" % [i, frames.size()])
+		emit_signal("update_progress", {
+		"step": "Writing frames",
+		"value": i + 1,
+		"max_value": frames.size()
+	})
 		
 	
 	
@@ -104,16 +109,25 @@ func get_acTL(num_frames: int, num_plays: int = 0) -> PoolByteArray:
 	return actl
 
 
-func get_fcTL(sequence_number: int, width: int, height: int, framerate: int) -> PoolByteArray:
+func get_fcTL(sequence_number: int, width: int, height: int, framerate: float) -> PoolByteArray:
 	var fctl = PoolByteArray()
+	
+	var numerator = 1
+	var denumerator = 1
+	
+	if framerate > 1.0:
+		denumerator = round(framerate)
+	elif framerate > 0.0:
+		numerator = round(1.0 / framerate)
+		
 	
 	fctl.append_array(int2array(sequence_number, 4)) # sequence_number
 	fctl.append_array(int2array(width, 4)) # width
 	fctl.append_array(int2array(height, 4)) # height
 	fctl.append_array(int2array(0, 4)) # x_offset
 	fctl.append_array(int2array(0, 4)) # y_offset
-	fctl.append_array(int2array(1, 2)) # delay_num
-	fctl.append_array(int2array(framerate, 2)) # delay_den
+	fctl.append_array(int2array(numerator, 2)) # delay_num
+	fctl.append_array(int2array(denumerator, 2)) # delay_den
 	fctl.append(0) # dispose_op
 	fctl.append(0) # dispose_op
 	

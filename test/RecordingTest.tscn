@@ -1,0 +1,38 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://icon.png" type="Texture" id=1]
+[ext_resource path="res://addons/dardanbujupaj.recorder/Recorder.tscn" type="PackedScene" id=2]
+[ext_resource path="res://test/RecordingTest.gd" type="Script" id=3]
+
+[sub_resource type="Animation" id=1]
+resource_name = "default"
+length = 5.0
+loop = true
+tracks/0/type = "value"
+tracks/0/path = NodePath("icon:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5 ),
+"transitions": PoolRealArray( -2, -2, -2, -2, -2, -2, -2, -2, -2, 1 ),
+"update": 0,
+"values": [ Vector2( 410.582, 230.6 ), Vector2( 521.054, 184.273 ), Vector2( 536.377, 314.701 ), Vector2( 228.75, 238.44 ), Vector2( 428.341, 73.6828 ), Vector2( 758.003, 132.541 ), Vector2( 761.573, 371.314 ), Vector2( 442.191, 467.989 ), Vector2( 153.695, 390.641 ), Vector2( 112.868, 107.495 ) ]
+}
+
+[node name="RecordingTest" type="Node2D"]
+position = Vector2( 48, 59 )
+script = ExtResource( 3 )
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+autoplay = "default"
+anims/default = SubResource( 1 )
+
+[node name="Recorder" parent="." instance=ExtResource( 2 )]
+framerate = 60.0
+color_type = 6
+
+[node name="icon" type="Sprite" parent="."]
+position = Vector2( 410.582, 230.6 )
+texture = ExtResource( 1 )

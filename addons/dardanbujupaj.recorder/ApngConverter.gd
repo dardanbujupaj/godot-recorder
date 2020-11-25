@@ -42,6 +42,7 @@ func write(basename: String, frames: Array, color_type: int, framerate: float):
 	
 	sequence = 0
 	
+	# begin with png signature
 	var data = PoolByteArray(PNG_SIGNATURE)
 	
 	var first_frame: Image = frames[0]
@@ -52,6 +53,8 @@ func write(basename: String, frames: Array, color_type: int, framerate: float):
 	
 	# first animation frame
 	data.append_array(get_chunk(ChunkType.acTL, get_acTL(frames.size())))
+	
+	# frame control chunk and first frame
 	data.append_array(get_chunk(ChunkType.fcTL, get_fcTL(0, first_frame.get_width(), first_frame.get_height(), framerate)))
 	data.append_array(get_chunk(ChunkType.IDAT, get_png_datastream(first_frame)))
 	
@@ -63,14 +66,17 @@ func write(basename: String, frames: Array, color_type: int, framerate: float):
 	
 	
 	for i in range(1, frames.size()):
+		# frame control chunk
 		var next_frame = frames[i]
 		data.append_array(get_chunk(ChunkType.fcTL, get_fcTL(next_sequence(), next_frame.get_width(), next_frame.get_height(), framerate)))
 		
 		
+		# frame data chunk
 		var frame_data = int2array(next_sequence(), 4)
 		frame_data.append_array(get_png_datastream(next_frame))
 		data.append_array(get_chunk(ChunkType.fdAT, frame_data))
 		
+		# update progress
 		emit_signal("update_progress", {
 		"step": "Writing frames",
 		"value": i + 1,
@@ -78,7 +84,7 @@ func write(basename: String, frames: Array, color_type: int, framerate: float):
 	})
 		
 	
-	
+	# end chunk
 	data.append_array(get_chunk(ChunkType.IEND, PoolByteArray()))
 	
 	var file = File.new()

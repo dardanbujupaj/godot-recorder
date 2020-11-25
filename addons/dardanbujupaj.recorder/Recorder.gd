@@ -91,7 +91,7 @@ func start_recording():
 	
 	frame_offset = 1.0 / framerate
 	print("start recording")
-	start = OS.get_ticks_usec()
+	start = OS.get_ticks_msec()
 	thread = Thread.new()
 	preprocess_counter = 0
 	thread.start(self, "_preprocess_image")
@@ -101,9 +101,7 @@ func start_recording():
 
 
 func stop_recording():
-	print("stop recording")
-	print("%dus" % (OS.get_ticks_usec() - start))
-	print("should be %dus" % (1000000 / framerate * recorded_images.size()))
+	print("recorded %dms" % (OS.get_ticks_msec() - start))
 	
 	$CanvasLayer/PanelContainer.show()
 	_on_progress_update({
@@ -125,7 +123,6 @@ func _preprocess_image(userdata: Object) -> void:
 			return
 		
 		if !recording and preprocess_counter >= recorded_images.size():
-			# yield(get_tree().create_timer(1), "timeout")
 			print ("recorded %d frames" % recorded_images.size())
 			
 			var basename = get_file_basename()
@@ -141,8 +138,8 @@ func _preprocess_image(userdata: Object) -> void:
 			$SuccessPanelTimer.start()
 			$CanvasLayer/SuccessPanel.show()
 			
-			# wait for thread to finish
-			thread.wait_to_finish()
+			# wait for finish in main thread
+			thread.call_deferred("wait_to_finish")
 			return
 		
 		var image: Image = recorded_images[preprocess_counter]

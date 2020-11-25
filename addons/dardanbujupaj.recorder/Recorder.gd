@@ -76,7 +76,7 @@ func _process(delta):
 
 # listen for user input to start/stop recording
 func _unhandled_input(event: InputEvent):
-	if event.shortcut_match(trigger) and event.is_pressed() and not event.is_echo():
+	if trigger.shortcut_match(event) and event.is_pressed() and not event.is_echo():
 		if recording:
 			stop_recording()
 		else:

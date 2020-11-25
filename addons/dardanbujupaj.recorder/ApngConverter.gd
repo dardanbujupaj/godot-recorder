@@ -1,4 +1,4 @@
-extends Node
+extends Object
 
 signal update_progress
 
@@ -25,7 +25,7 @@ enum ColorType {
 }
 
 
-func _ready():
+func _init():
 	make_crc_table()
 
 
@@ -34,10 +34,10 @@ func next_sequence():
 	sequence += 1
 	return sequence
 
-var thread
+
 
 # 
-func write_png(frames: Array, color_type: int, framerate: float):
+func write(basename: String, frames: Array, color_type: int, framerate: float):
 	var start = OS.get_ticks_msec()
 	
 	sequence = 0
@@ -46,12 +46,13 @@ func write_png(frames: Array, color_type: int, framerate: float):
 	
 	var first_frame: Image = frames[0]
 	
+	# image header
 	data.append_array(get_chunk(ChunkType.IHDR, get_IHDR(first_frame.get_width(), first_frame.get_height(), 8, color_type)))
 	
+	
+	# first animation frame
 	data.append_array(get_chunk(ChunkType.acTL, get_acTL(frames.size())))
 	data.append_array(get_chunk(ChunkType.fcTL, get_fcTL(0, first_frame.get_width(), first_frame.get_height(), framerate)))
-	
-	
 	data.append_array(get_chunk(ChunkType.IDAT, get_png_datastream(first_frame)))
 	
 	emit_signal("update_progress", {
@@ -60,9 +61,11 @@ func write_png(frames: Array, color_type: int, framerate: float):
 		"max_value": frames.size()
 	})
 	
+	
 	for i in range(1, frames.size()):
 		var next_frame = frames[i]
 		data.append_array(get_chunk(ChunkType.fcTL, get_fcTL(next_sequence(), next_frame.get_width(), next_frame.get_height(), framerate)))
+		
 		
 		var frame_data = int2array(next_sequence(), 4)
 		frame_data.append_array(get_png_datastream(next_frame))
@@ -79,10 +82,13 @@ func write_png(frames: Array, color_type: int, framerate: float):
 	data.append_array(get_chunk(ChunkType.IEND, PoolByteArray()))
 	
 	var file = File.new()
-	file.open("res://test.png", File.WRITE)
-	file.store_buffer(data)
-	file.close()
-	print("png written after %dms" % (OS.get_ticks_msec() - start))
+	var err = file.open(basename + ".png", File.WRITE)
+	if err == OK:
+		file.store_buffer(data)
+		file.close()
+		print_debug("png written after %dms" % (OS.get_ticks_msec() - start))
+	else:
+		printerr("Could not write png because of file error: " + str(err))
 
 
 
@@ -176,8 +182,6 @@ func make_crc_table() -> void:
 			else:
 				c = c >> 1;
 		crc_table.append(c)
-		
-		
 
 
 # Calculate the Cyclic redundancy check for a byte array

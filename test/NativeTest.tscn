@@ -6,6 +6,9 @@
 anchor_right = 1.0
 anchor_bottom = 1.0
 script = ExtResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
 
 [node name="Test" type="Button" parent="."]
 margin_left = 492.0
@@ -13,4 +16,5 @@ margin_top = 290.0
 margin_right = 531.0
 margin_bottom = 310.0
 text = "Test"
+
 [connection signal="pressed" from="Test" to="." method="_on_Test_pressed"]

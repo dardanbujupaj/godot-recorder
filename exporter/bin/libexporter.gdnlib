@@ -7,8 +7,10 @@ reloadable=true
 
 [entry]
 
+OSX.64="res://exporter/bin/libexporter.dylib"
 X11.64="res://exporter/bin/linuxbsd/libexporter.so"
 
 [dependencies]
 
+OSX.64=[  ]
 X11.64=[  ]

@@ -64,6 +64,7 @@ scons platform=linux
 
 ## TODO
 - Implement exporter (ffmpeg wrapper)
+  - https://github.com/leandromoreira/ffmpeg-libav-tutorial
 - Github workflow to release versions
   1. create binaries for every platform and upload as artifacts
     - https://github.com/actions/upload-artifact

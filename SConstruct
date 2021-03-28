@@ -427,7 +427,7 @@ else:
 
 if should_generate_bindings:
     # Actually create the bindings here
-    import binding_generator
+    from godot_cpp import binding_generator
 
     binding_generator.generate_bindings(json_api_file, env['generate_template_get_node'])
 

@@ -3,5 +3,5 @@
 [ext_resource path="res://exporter/bin/libexporter.gdnlib" type="GDNativeLibrary" id=1]
 
 [resource]
-class_name = "EXPORTER"
+class_name = "ExporterClass"
 library = ExtResource( 1 )

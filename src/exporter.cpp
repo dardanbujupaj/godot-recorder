@@ -1,5 +1,6 @@
 #include <Godot.hpp>
 #include <Reference.hpp>
+#include <Image.hpp>
 
 using namespace godot;
 
@@ -15,15 +16,16 @@ public:
         Godot::print("This is test");
     }
 
-    Variant method(Variant arg) {
-        Variant ret;
+    String method(Variant arg) {
+        String ret;
+        Ref<Image> ref;
         ret = arg;
 
         return ret;
     }
 
     static void _register_methods() {
-        register_method("method", &ExporterClass::method);
+        register_method("get_data", &ExporterClass::method);
 
         /**
          * The line below is equivalent to the following GDScript export:

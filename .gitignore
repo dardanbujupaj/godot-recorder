@@ -12,3 +12,4 @@ export_presets.cfg
 data_*/
 
 .sconsign.dblite
+.DS_Store

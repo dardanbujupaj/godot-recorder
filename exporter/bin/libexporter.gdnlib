@@ -8,7 +8,9 @@ reloadable=true
 [entry]
 
 OSX.64="res://exporter/bin/osx/libexporter.dylib"
+X11.64="res://exporter/bin/x11/libexporter.so"
 
 [dependencies]
 
 OSX.64=[  ]
+X11.64=[  ]

@@ -16,12 +16,8 @@ public:
         Godot::print("This is test");
     }
 
-    String method(Variant arg) {
-        String ret;
-        Ref<Image> ref;
-        ret = arg;
-
-        return ret;
+    String method() {
+        return "hello godot";
     }
 
     static void _register_methods() {

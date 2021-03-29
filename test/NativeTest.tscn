@@ -16,5 +16,4 @@ margin_top = 290.0
 margin_right = 531.0
 margin_bottom = 310.0
 text = "Test"
-
 [connection signal="pressed" from="Test" to="." method="_on_Test_pressed"]

@@ -1,6 +1,10 @@
+extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libavutil/timestamp.h>
+}
+
+#include <string>
 
 #include <Godot.hpp>
 #include <Reference.hpp>
@@ -23,6 +27,10 @@ public:
         Godot::print("This is test");
     }
 
+    void log(std::string text) {
+      Godot::print(String(text.c_str()));
+    }
+
     String method()
     {
         return "hello godot";
@@ -32,13 +40,14 @@ public:
     {
         Godot::print(filename);
         AVFormatContext *av_format_context;
+        log("hello");
 
         char *output_filename = filename.alloc_c_string();
 
         avformat_alloc_output_context2(&av_format_context, NULL, NULL, output_filename);
         if (!av_format_context)
         {
-            printf("could not allocate memory for output format");
+            log("could not allocate memory for output format");
             return -1;
         }
 
@@ -49,7 +58,7 @@ public:
         {
             if (avio_open(&av_format_context->pb, output_filename, AVIO_FLAG_WRITE) < 0)
             {
-                printf("could not open the output file");
+                log("could not open the output file");
                 return -1;
             }
         }
@@ -65,28 +74,28 @@ public:
 
         if (avformat_write_header(av_format_context, &muxer_opts) < 0)
         {
-            printf("an error occurred when opening output file");
+            log("an error occurred when opening output file");
             return -1;
         }
 
         AVCodecContext *codec_context = avcodec_alloc_context3(av_format_context->video_codec);
         if (!codec_context)
         {
-            printf("failed to allocated memory for AVCodecContext");
+            log("failed to allocated memory for AVCodecContext");
             return -1;
         };
 
         AVFrame *input_frame = av_frame_alloc();
         if (!input_frame)
         {
-            printf("failed to allocated memory for AVFrame");
+            log("failed to allocated memory for AVFrame");
             return -1;
         }
 
         AVPacket *input_packet = av_packet_alloc();
         if (!input_packet)
         {
-            printf("failed to allocated memory for AVPacket");
+            log("failed to allocated memory for AVPacket");
             return -1;
         }
 
@@ -125,7 +134,7 @@ public:
         AVPacket *output_packet = av_packet_alloc();
         if (!output_packet)
         {
-            printf("could not allocate memory for output packet");
+            log("could not allocate memory for output packet");
             return -1;
         }
 
@@ -140,7 +149,7 @@ public:
             }
             else if (response < 0)
             {
-                printf("Error while receiving packet from encoder: %s", av_err2str(response));
+                printf("Error while receiving packet from encoder: %d", response);
                 return -1;
             }
 
@@ -152,7 +161,7 @@ public:
             response = av_interleaved_write_frame(format_context, output_packet);
             if (response != 0)
             {
-                printf("Error %d while receiving packet from decoder: %s", response, av_err2str(response));
+                printf("Error %d while receiving packet from decoder: %d", response, response);
                 return -1;
             }
         }

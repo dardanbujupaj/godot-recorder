@@ -10,4 +10,6 @@ onready var exporter = preload("res://exporter/bin/exporter.gdns").new()
 
 
 func _on_Test_pressed() -> void:
-	print(exporter.get_data())
+	var image = get_viewport().get_texture().get_data()
+	print(image.get_format())
+	exporter.export_frames([image], "test.png")

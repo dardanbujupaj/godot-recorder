@@ -49,9 +49,9 @@ if env['platform'] == '':
 if env['platform'] == "osx":
     env['target_path'] += 'osx/'
     cpp_library += '.osx'
-    env.Append(CCFLAGS=['-arch', 'x86_64'])
+    env.Append(CCFLAGS=['-arch', 'arm64'])
     env.Append(CXXFLAGS=['-std=c++17'])
-    env.Append(LINKFLAGS=['-arch', 'x86_64'])
+    env.Append(LINKFLAGS=['-arch', 'arm64'])
     if env['target'] in ('debug', 'd'):
         env.Append(CCFLAGS=['-g', '-O2'])
     else:
@@ -98,7 +98,7 @@ env.Append(LIBPATH=[cpp_bindings_path + 'bin/'])
 env.Append(LIBS=[cpp_library])
 
 # tweak this if you want to use different folders, or more folders, to store your source code in.
-env.Append(CPPPATH=['src/'])
+env.Append(CPPPATH=['src/', 'lib/ffmpeg/'])
 sources = Glob('src/*.cpp')
 
 library = env.SharedLibrary(target=env['target_path'] + env['target_name'] , source=sources)

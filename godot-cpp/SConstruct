@@ -213,14 +213,14 @@ elif env['platform'] == 'osx':
             'Only 64-bit builds are supported for the macOS target.'
         )
 
-    env.Append(CCFLAGS=['-std=c++14', '-arch', 'x86_64'])
+    env.Append(CCFLAGS=['-std=c++14', '-arch', 'arm64'])
 
     if env['macos_deployment_target'] != 'default':
         env.Append(CCFLAGS=['-mmacosx-version-min=' + env['macos_deployment_target']])
 
     env.Append(LINKFLAGS=[
         '-arch',
-        'x86_64',
+        'arm64',
         '-framework',
         'Cocoa',
         '-Wl,-undefined,dynamic_lookup',

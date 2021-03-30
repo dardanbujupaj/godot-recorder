@@ -94,7 +94,7 @@ cpp_library += '.' + str(bits)
 
 # make sure our binding library is properly includes
 env.Append(CPPPATH=['.', godot_headers_path, cpp_bindings_path + 'include/', cpp_bindings_path + 'include/core/', cpp_bindings_path + 'include/gen/'])
-env.Append(LIBPATH=[cpp_bindings_path + 'bin/', 'lib'])
+env.Append(LIBPATH=[cpp_bindings_path + 'bin/', '/lib/ffmpeg/libavcodec', '/lib/ffmpeg/libavformat', '/lib/ffmpeg/libavutil'])
 env.Append(LIBS=[cpp_library, 'libavcodec', 'libavformat', 'libavutil'])
 
 # tweak this if you want to use different folders, or more folders, to store your source code in.

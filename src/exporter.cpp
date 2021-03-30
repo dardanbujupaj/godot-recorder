@@ -36,27 +36,211 @@ public:
         return "hello godot";
     }
 
-    int export_frames(Array frames, String filename)
+
+
+    // a wrapper around a single output AVStream
+    typedef struct OutputStream {
+        AVStream *st;
+        AVCodecContext *enc;
+
+        /* pts of the next frame that will be generated */
+        int64_t next_pts;
+        int samples_count;
+
+        AVFrame *frame;
+        AVFrame *tmp_frame;
+
+        float t, tincr, tincr2;
+
+        struct SwsContext *sws_ctx;
+        struct SwrContext *swr_ctx;
+    } OutputStream;
+
+    /* Add an output stream. */
+    static void add_stream(OutputStream *ost, AVFormatContext *oc,
+                           AVCodec **codec,
+                           enum AVCodecID codec_id)
     {
-        Godot::print(filename);
+        AVCodecContext *c;
+        int i;
+
+        /* find the encoder */
+        *codec = avcodec_find_encoder(codec_id);
+        if (!(*codec)) {
+            fprintf(stderr, "Could not find encoder for '%s'\n",
+                    avcodec_get_name(codec_id));
+            exit(1);
+        }
+
+        ost->st = avformat_new_stream(oc, NULL);
+        if (!ost->st) {
+            fprintf(stderr, "Could not allocate stream\n");
+            exit(1);
+        }
+        ost->st->id = oc->nb_streams-1;
+        c = avcodec_alloc_context3(*codec);
+        if (!c) {
+            fprintf(stderr, "Could not alloc an encoding context\n");
+            exit(1);
+        }
+        ost->enc = c;
+
+        switch ((*codec)->type) {
+        case AVMEDIA_TYPE_AUDIO:
+            c->sample_fmt  = (*codec)->sample_fmts ?
+                (*codec)->sample_fmts[0] : AV_SAMPLE_FMT_FLTP;
+            c->bit_rate    = 64000;
+            c->sample_rate = 44100;
+            if ((*codec)->supported_samplerates) {
+                c->sample_rate = (*codec)->supported_samplerates[0];
+                for (i = 0; (*codec)->supported_samplerates[i]; i++) {
+                    if ((*codec)->supported_samplerates[i] == 44100)
+                        c->sample_rate = 44100;
+                }
+            }
+            c->channels        = av_get_channel_layout_nb_channels(c->channel_layout);
+            c->channel_layout = AV_CH_LAYOUT_STEREO;
+            if ((*codec)->channel_layouts) {
+                c->channel_layout = (*codec)->channel_layouts[0];
+                for (i = 0; (*codec)->channel_layouts[i]; i++) {
+                    if ((*codec)->channel_layouts[i] == AV_CH_LAYOUT_STEREO)
+                        c->channel_layout = AV_CH_LAYOUT_STEREO;
+                }
+            }
+            c->channels        = av_get_channel_layout_nb_channels(c->channel_layout);
+            ost->st->time_base = (AVRational){ 1, c->sample_rate };
+            break;
+
+        case AVMEDIA_TYPE_VIDEO:
+            c->codec_id = codec_id;
+
+            c->bit_rate = 400000;
+            /* Resolution must be a multiple of two. */
+            c->width    = 352;
+            c->height   = 288;
+            /* timebase: This is the fundamental unit of time (in seconds) in terms
+             * of which frame timestamps are represented. For fixed-fps content,
+             * timebase should be 1/framerate and timestamp increments should be
+             * identical to 1. */
+            ost->st->time_base = (AVRational){ 1, 30 };
+            c->time_base       = ost->st->time_base;
+
+            c->gop_size      = 12; /* emit one intra frame every twelve frames at most */
+            c->pix_fmt       = AV_PIX_FMT_YUV420P;
+            if (c->codec_id == AV_CODEC_ID_MPEG2VIDEO) {
+                /* just for testing, we also add B-frames */
+                c->max_b_frames = 2;
+            }
+            if (c->codec_id == AV_CODEC_ID_MPEG1VIDEO) {
+                /* Needed to avoid using macroblocks in which some coeffs overflow.
+                 * This does not happen with normal video, it just happens here as
+                 * the motion of the chroma plane does not match the luma plane. */
+                c->mb_decision = 2;
+            }
+            break;
+
+        default:
+            break;
+        }
+
+        /* Some formats want stream headers to be separate. */
+        if (oc->oformat->flags & AVFMT_GLOBALHEADER)
+            c->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
+    }
+
+    static void open_video(AVFormatContext *oc, AVCodec *codec, OutputStream *ost, AVDictionary *opt_arg)
+    {
+        int ret;
+        AVCodecContext *c = ost->enc;
+        AVDictionary *opt = NULL;
+
+        av_dict_copy(&opt, opt_arg, 0);
+
+        /* open the codec */
+        ret = avcodec_open2(c, codec, &opt);
+        av_dict_free(&opt);
+        if (ret < 0) {
+            fprintf(stderr, "Could not open video codec: %d\n", ret);
+            exit(1);
+        }
+
+        /* allocate and init a re-usable frame */
+        /*
+        ost->frame = alloc_picture(c->pix_fmt, c->width, c->height);
+        if (!ost->frame) {
+            fprintf(stderr, "Could not allocate video frame\n");
+            exit(1);
+        }
+        */
+
+        /* If the output format is not YUV420P, then a temporary YUV420P
+         * picture is needed too. It is then converted to the required
+         * output format. */
+        /*
+        ost->tmp_frame = NULL;
+        if (c->pix_fmt != AV_PIX_FMT_YUV420P) {
+            ost->tmp_frame = alloc_picture(AV_PIX_FMT_YUV420P, c->width, c->height);
+            if (!ost->tmp_frame) {
+                fprintf(stderr, "Could not allocate temporary picture\n");
+                exit(1);
+            }
+        }
+        */
+
+        /* copy the stream parameters to the muxer */
+        ret = avcodec_parameters_from_context(ost->st->codecpar, c);
+        if (ret < 0) {
+            fprintf(stderr, "Could not copy the stream parameters\n");
+            exit(1);
+        }
+    }
+
+
+    int export_frames(Array frames, String export_filename)
+    {
+
+
         AVFormatContext *av_format_context;
-        log("hello");
+        AVCodec *video_codec;
+        OutputStream video_stream = { 0 };
+        int have_video = 0;
+        AVDictionary *opt = NULL;
 
-        char *output_filename = filename.alloc_c_string();
+        char *filename = export_filename.alloc_c_string();
+        Godot::print(filename);
 
-        avformat_alloc_output_context2(&av_format_context, NULL, NULL, output_filename);
+        avformat_alloc_output_context2(&av_format_context, NULL, NULL, filename);
         if (!av_format_context)
         {
             log("could not allocate memory for output format");
             return -1;
         }
 
-        if (av_format_context->oformat->flags & AVFMT_GLOBALHEADER)
-            av_format_context->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
+        /* Add the audio and video streams using the default format codecs
+         * and initialize the codecs. */
+        if (av_format_context->oformat->video_codec != AV_CODEC_ID_NONE) {
+            add_stream(&video_stream, av_format_context, &video_codec, av_format_context->oformat->video_codec);
+            have_video = 1;
+        }
+        /*
+        if (fmt->audio_codec != AV_CODEC_ID_NONE) {
+            add_stream(&audio_st, oc, &audio_codec, fmt->audio_codec);
+            have_audio = 1;
+            encode_audio = 1;
+        }
+        */
 
+
+        av_dump_format(av_format_context, 0, filename, 1);
+
+        if (have_video)
+          open_video(av_format_context, video_codec, &video_stream, opt);
+
+        log("open 1");
         if (!(av_format_context->oformat->flags & AVFMT_NOFILE))
         {
-            if (avio_open(&av_format_context->pb, output_filename, AVIO_FLAG_WRITE) < 0)
+            log("open outputfile");
+            if (avio_open(&av_format_context->pb, filename, AVIO_FLAG_WRITE) < 0)
             {
                 log("could not open the output file");
                 return -1;
@@ -72,6 +256,7 @@ public:
         }
         */
 
+        Godot::print("write header");
         if (avformat_write_header(av_format_context, &muxer_opts) < 0)
         {
             log("an error occurred when opening output file");
@@ -99,29 +284,60 @@ public:
             return -1;
         }
 
+        log("frames");
         for (int i = 0; i < frames.size(); i++)
         {
             Variant v = frames[0];
             Image *image = Object::cast_to<Image>(v.operator Object *());
 
-            image->convert(Image::FORMAT_RGBA8); // maybe we can use rbga32f directly
+            log("convert");
+            image->convert(Image::FORMAT_RGB8); // maybe we can use rbga32f directly
 
-            input_frame->format = AV_PIX_FMT_RGBA;
+            input_frame = av_frame_alloc();
+
+            input_frame->format = AV_PIX_FMT_YUV420P;
             input_frame->width = image->get_width();
             input_frame->height = image->get_height();
 
-            uint8_t *data;
+
+            /* allocate the buffers for the frame data */
+            int ret = av_frame_get_buffer(input_frame, 0);
+            if (ret < 0) {
+                fprintf(stderr, "Could not allocate frame data.\n");
+                exit(1);
+            }
+
+
+            log("copy");
+            uint8_t *data = (uint8_t*)malloc(image->get_data().size() * sizeof(uint8_t));
             memcpy(data, image->get_data().read().ptr(), image->get_data().size());
 
+            log("set data");
             input_frame->data[0] = data;
 
 
 
+            log("encode");
+            memcpy(data, image->get_data().read().ptr(), image->get_data().size());
             encode_video(av_format_context, codec_context, input_frame);
 
             Godot::print(String::num_int64(image->get_width()));
         }
 
+
+        /* Write the trailer, if any. The trailer must be written before you
+         * close the CodecContexts open when you wrote the header; otherwise
+         * av_write_trailer() may try to use memory that was freed on
+         * av_codec_close(). */
+        av_write_trailer(av_format_context);
+
+        if (!(av_format_context->oformat->flags & AVFMT_NOFILE))
+            /* Close the output file. */
+            avio_closep(&av_format_context->pb);
+
+        /* free the stream */
+        avformat_free_context(av_format_context);
+        
         return 0;
     }
 

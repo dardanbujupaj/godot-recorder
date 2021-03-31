@@ -11,7 +11,7 @@ opts.Add(EnumVariable('target', "Compilation target", 'debug', ['d', 'debug', 'r
 opts.Add(EnumVariable('platform', "Compilation platform", '', ['', 'windows', 'x11', 'linux', 'osx']))
 opts.Add(EnumVariable('p', "Compilation target, alias for 'platform'", '', ['', 'windows', 'x11', 'linux', 'osx']))
 opts.Add(BoolVariable('use_llvm', "Use the LLVM / Clang compiler", 'no'))
-opts.Add(PathVariable('target_path', 'The path where the lib is installed.', 'exporter/bin/'))
+opts.Add(PathVariable('target_path', 'The path where the lib is installed.', 'addons/dardanbujupaj.recorder/gif-exporter/bin/'))
 opts.Add(PathVariable('target_name', 'The library name.', 'libexporter', PathVariable.PathAccept))
 
 # Local dependency paths, adapt them to your setup
@@ -94,8 +94,8 @@ cpp_library += '.' + str(bits)
 
 # make sure our binding library is properly includes
 env.Append(CPPPATH=['.', godot_headers_path, cpp_bindings_path + 'include/', cpp_bindings_path + 'include/core/', cpp_bindings_path + 'include/gen/'])
-env.Append(LIBPATH=[cpp_bindings_path + 'bin/', '/lib/ffmpeg/libavcodec', '/lib/ffmpeg/libavformat', '/lib/ffmpeg/libavutil'])
-env.Append(LIBS=[cpp_library, 'libavcodec', 'libavformat', 'libavutil'])
+env.Append(LIBPATH=[cpp_bindings_path + 'bin/'])
+env.Append(LIBS=[cpp_library])
 
 # tweak this if you want to use different folders, or more folders, to store your source code in.
 env.Append(CPPPATH=['src/'])

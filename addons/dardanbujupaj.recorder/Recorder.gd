@@ -19,12 +19,12 @@ enum ColorType {
 enum Format {
 	APNG
 	PNG_SEQUENCE
-	# GIF
+	GIF
 }
 
 
 export(float) var framerate: float = 30.0
-export(ColorType) var color_type: int = ColorType.TRUECOLOR
+export(ColorType) var color_type: int = ColorType.TRUECOLOR_ALPHA
 # export(Rect2) var crop: Rect2 = Rect2()
 export(float, EXP, 0.1, 10, 0.1) var scale: float = 1.0
 export(Format) var format: int = Format.APNG
@@ -45,6 +45,7 @@ var preprocess_counter = 0
 var converters = {
 	Format.APNG: preload("ApngConverter.gd").new(),
 	Format.PNG_SEQUENCE: preload("PngSequenceConverter.gd").new(),
+	Format.GIF: preload("res://exporter/bin/exporter.gdns").new()
 }
 
 
@@ -163,8 +164,9 @@ func get_file_basename():
 	var timestamp = ("%04d%02d%02d%02d%02d%02d" %
 					 [dt["year"], dt["month"], dt["day"], 
 					 dt["hour"], dt["minute"], dt["second"]])
-	
-	return export_path.plus_file("%s_%s" % [prefix, timestamp])
+	var basename = export_path
+	basename = basename.replace("user://", OS.get_user_data_dir())
+	return basename.plus_file("%s_%s" % [prefix, timestamp])
 
 
 func _get_image_format():

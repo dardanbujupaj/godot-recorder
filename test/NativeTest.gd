@@ -13,6 +13,6 @@ func _on_Test_pressed() -> void:
 	var image = get_viewport().get_texture().get_data()
 	image.save_png("test.png")
 	print(image.get_format())
-	var result = exporter.export_frames([image], "/home/dardan/test.gif")
+	var result = exporter.export_frames([image, image, image, image], "/home/dardan/test.gif")
 	if result != 0:
 		print("Export failed: %d" % result)

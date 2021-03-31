@@ -116,8 +116,8 @@ public:
 
             c->bit_rate = 400000;
             /* Resolution must be a multiple of two. */
-            c->width    = 352;
-            c->height   = 288;
+            c->width    = 100;
+            c->height   = 100;
             /* timebase: This is the fundamental unit of time (in seconds) in terms
              * of which frame timestamps are represented. For fixed-fps content,
              * timebase should be 1/framerate and timestamp increments should be
@@ -126,7 +126,8 @@ public:
             c->time_base       = ost->st->time_base;
 
             c->gop_size      = 12; /* emit one intra frame every twelve frames at most */
-            c->pix_fmt       = AV_PIX_FMT_YUV420P;
+            //c->pix_fmt       = AV_PIX_FMT_YUV420P;
+            c->pix_fmt       = AV_PIX_FMT_GRAY8;
             if (c->codec_id == AV_CODEC_ID_MPEG2VIDEO) {
                 /* just for testing, we also add B-frames */
                 c->max_b_frames = 2;
@@ -148,7 +149,7 @@ public:
             c->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
     }
 
-    static void open_video(AVFormatContext *oc, AVCodec *codec, OutputStream *ost, AVDictionary *opt_arg)
+    void open_video(AVFormatContext *oc, AVCodec *codec, OutputStream *ost, AVDictionary *opt_arg)
     {
         int ret;
         AVCodecContext *c = ost->enc;
@@ -157,7 +158,9 @@ public:
         av_dict_copy(&opt, opt_arg, 0);
 
         /* open the codec */
+        log("open codec");
         ret = avcodec_open2(c, codec, &opt);
+        log(std::to_string(ret));
         av_dict_free(&opt);
         if (ret < 0) {
             fprintf(stderr, "Could not open video codec: %d\n", ret);
@@ -291,11 +294,12 @@ public:
             Image *image = Object::cast_to<Image>(v.operator Object *());
 
             log("convert");
-            image->convert(Image::FORMAT_RGB8); // maybe we can use rbga32f directly
-
+            image->convert(Image::FORMAT_L8); // maybe we can use rbga32f directly
+            image->resize(100, 100);
             input_frame = av_frame_alloc();
 
-            input_frame->format = AV_PIX_FMT_YUV420P;
+            //input_frame->format = AV_PIX_FMT_YUV420P;
+            input_frame->format = AV_PIX_FMT_GRAY8;
             input_frame->width = image->get_width();
             input_frame->height = image->get_height();
 
@@ -309,8 +313,9 @@ public:
 
 
             log("copy");
+            log(std::to_string(image->get_data().size()));
             uint8_t *data = (uint8_t*)malloc(image->get_data().size() * sizeof(uint8_t));
-            memcpy(data, image->get_data().read().ptr(), image->get_data().size());
+            // memcpy(data, image->get_data().read().ptr(), image->get_data().size());
 
             log("set data");
             input_frame->data[0] = data;
@@ -318,7 +323,6 @@ public:
 
 
             log("encode");
-            memcpy(data, image->get_data().read().ptr(), image->get_data().size());
             encode_video(av_format_context, codec_context, input_frame);
 
             Godot::print(String::num_int64(image->get_width()));
@@ -329,12 +333,15 @@ public:
          * close the CodecContexts open when you wrote the header; otherwise
          * av_write_trailer() may try to use memory that was freed on
          * av_codec_close(). */
+        log("write trailer");
         av_write_trailer(av_format_context);
 
+        log("close");
         if (!(av_format_context->oformat->flags & AVFMT_NOFILE))
             /* Close the output file. */
             avio_closep(&av_format_context->pb);
 
+        log("free");
         /* free the stream */
         avformat_free_context(av_format_context);
         
@@ -355,9 +362,18 @@ public:
         }
 
         int response = avcodec_send_frame(codec_context, frame);
+        log("write frame");
+        log(std::to_string(response));
+        if (response == AVERROR(EINVAL))
+          log("EINVAL");
+        if (response == AVERROR(EAGAIN))
+          log("EAGAIN");
+        if (response == AVERROR(ENOMEM))
+          log("ENOMEM");
 
         while (response >= 0)
         {
+            log("response packet");
             response = avcodec_receive_packet(codec_context, output_packet);
             if (response == AVERROR(EAGAIN) || response == AVERROR_EOF)
             {
@@ -377,6 +393,7 @@ public:
             response = av_interleaved_write_frame(format_context, output_packet);
             if (response != 0)
             {
+                log("write packet error");
                 printf("Error %d while receiving packet from decoder: %d", response, response);
                 return -1;
             }

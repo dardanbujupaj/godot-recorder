@@ -13,3 +13,5 @@ data_*/
 
 .sconsign.dblite
 .DS_Store
+
+*.os

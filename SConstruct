@@ -8,8 +8,8 @@ env = DefaultEnvironment()
 
 # Define our options
 opts.Add(EnumVariable('target', "Compilation target", 'debug', ['d', 'debug', 'r', 'release']))
-opts.Add(EnumVariable('platform', "Compilation platform", '', ['', 'windows', 'x11', 'linux', 'osx']))
-opts.Add(EnumVariable('p', "Compilation target, alias for 'platform'", '', ['', 'windows', 'x11', 'linux', 'osx']))
+opts.Add(EnumVariable('platform', "Compilation platform", '', ['', 'windows', 'x11', 'linux', 'osx', 'macos']))
+opts.Add(EnumVariable('p', "Compilation target, alias for 'platform'", '', ['', 'windows', 'x11', 'linux', 'osx', 'macos']))
 opts.Add(BoolVariable('use_llvm', "Use the LLVM / Clang compiler", 'no'))
 opts.Add(PathVariable('target_path', 'The path where the lib is installed.', 'addons/dardanbujupaj.recorder/gif-exporter/bin/'))
 opts.Add(PathVariable('target_name', 'The library name.', 'libexporter', PathVariable.PathAccept))
@@ -46,8 +46,8 @@ if env['platform'] == '':
 # - LINKFLAGS are for linking flags
 
 # Check our platform specifics
-if env['platform'] == "osx":
-    env['target_path'] += 'osx/'
+if env['platform'] in ('osx', 'macos'):
+    env['target_path'] += 'macos/'
     cpp_library += '.osx'
     env.Append(CCFLAGS=['-arch', 'x86_64'])
     env.Append(CXXFLAGS=['-std=c++17'])
@@ -58,7 +58,7 @@ if env['platform'] == "osx":
         env.Append(CCFLAGS=['-g', '-O3'])
 
 elif env['platform'] in ('x11', 'linux'):
-    env['target_path'] += 'x11/'
+    env['target_path'] += 'linux/'
     cpp_library += '.linux'
     env.Append(CCFLAGS=['-fPIC'])
     env.Append(CXXFLAGS=['-std=c++17'])
@@ -68,7 +68,7 @@ elif env['platform'] in ('x11', 'linux'):
         env.Append(CCFLAGS=['-g', '-O3'])
 
 elif env['platform'] == "windows":
-    env['target_path'] += 'win64/'
+    env['target_path'] += 'windows/'
     cpp_library += '.windows'
     # This makes sure to keep the session environment variables on windows,
     # that way you can run scons in a vs 2017 prompt and it will find all the required tools

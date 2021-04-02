@@ -35,3 +35,4 @@ texture = ExtResource( 1 )
 
 [node name="Recorder" parent="." instance=ExtResource( 2 )]
 color_type = 2
+format = 2

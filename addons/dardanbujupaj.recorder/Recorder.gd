@@ -45,7 +45,7 @@ var preprocess_counter = 0
 var converters = {
 	Format.APNG: preload("ApngConverter.gd").new(),
 	Format.PNG_SEQUENCE: preload("PngSequenceConverter.gd").new(),
-	Format.GIF: preload("res://exporter/bin/exporter.gdns").new()
+	Format.GIF: preload("gif-exporter/bin/GifExporter.gdns").new()
 }
 
 

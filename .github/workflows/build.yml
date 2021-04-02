@@ -60,7 +60,7 @@ jobs:
       - name: list output
         run: ls -lah addons/dardanbujupaj.recorder/gif-exporter/bin/macos/*
 
-  build-linux:
+  build-windows:
     # The type of runner that the job will run on
     runs-on: windows-latest
 

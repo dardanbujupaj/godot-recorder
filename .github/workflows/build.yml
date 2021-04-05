@@ -6,6 +6,12 @@ name: build release binaries
 on:
   # Triggers the workflow on push or pull request events but only for the main branch
   workflow_dispatch:
+    inputs:
+      tag: 
+        description: 'Release tag'     
+        required: true
+        default: 'v0.0.0'
+
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -32,8 +38,14 @@ jobs:
       - name: Compile binary
         run: scons platform=linux target=release
       
-      - name: list output
-        run: ls -lah addons/dardanbujupaj.recorder/gif-exporter/bin/linux/*
+      - name: Commit linux binary
+        run: |
+          git config --global user.name 'Github Action'
+          git config --global user.email 'dardanbujupaj@users.noreply.github.com'
+          git pull
+          git commit -am "Update linux binary for release ${{ github.event.inputs.tag }}"
+          git push
+
 
   build-macos:
     # The type of runner that the job will run on
@@ -57,8 +69,14 @@ jobs:
       - name: Compile binary
         run: scons platform=macos target=release
       
-      - name: list output
-        run: ls -lah addons/dardanbujupaj.recorder/gif-exporter/bin/macos/*
+      - name: Commit macos binary
+        run: |
+          git config --global user.name 'Github Action'
+          git config --global user.email 'dardanbujupaj@users.noreply.github.com'
+          git pull
+          git commit -am "Update macos binary for release ${{ github.event.inputs.tag }}"
+          git push
+    
 
   build-windows:
     # The type of runner that the job will run on
@@ -85,8 +103,30 @@ jobs:
         run: |
           scons platform=windows target=release
       
-      - name: list output
-        run: ls -lah addons/dardanbujupaj.recorder/gif-exporter/bin/windows/*
+      - name: Commit windows binary
+        run: |
+          git config --global user.name 'Github Action'
+          git config --global user.email 'dardanbujupaj@users.noreply.github.com'
+          git pull
+          git commit -am "Update windows binary for release ${{ github.event.inputs.tag }}"
+          git push
+  
+  
+  tag-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - name: Commit windows binary
+        run: |
+          git config --global user.name 'Github Action'
+          git config --global user.email 'dardanbujupaj@users.noreply.github.com'
+          git tag ${{ github.event.inputs.tag }}"
+          git push --tags
+
+
         
         
         

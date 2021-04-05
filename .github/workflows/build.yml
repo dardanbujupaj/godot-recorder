@@ -43,6 +43,7 @@ jobs:
           git config --global user.name 'Github Action'
           git config --global user.email 'dardanbujupaj@users.noreply.github.com'
           git pull
+          git add .
           git commit -am "Update linux binary for release ${{ github.event.inputs.tag }}"
           git push
 
@@ -74,6 +75,7 @@ jobs:
           git config --global user.name 'Github Action'
           git config --global user.email 'dardanbujupaj@users.noreply.github.com'
           git pull
+          git add .
           git commit -am "Update macos binary for release ${{ github.event.inputs.tag }}"
           git push
     
@@ -108,12 +110,15 @@ jobs:
           git config --global user.name 'Github Action'
           git config --global user.email 'dardanbujupaj@users.noreply.github.com'
           git pull
+          git add .
           git commit -am "Update windows binary for release ${{ github.event.inputs.tag }}"
           git push
   
   
   tag-release:
     runs-on: ubuntu-latest
+
+    needs: [build-linux, build-macos, build-windows]
 
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
@@ -123,7 +128,7 @@ jobs:
         run: |
           git config --global user.name 'Github Action'
           git config --global user.email 'dardanbujupaj@users.noreply.github.com'
-          git tag ${{ github.event.inputs.tag }}"
+          git tag ${{ github.event.inputs.tag }}
           git push --tags
 
 

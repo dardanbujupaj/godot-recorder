@@ -75,14 +75,14 @@ jobs:
 
       # Runs a set of commands using the runners shell
       - name: Compile headers
+        shell: cmd
         run: |
           cd godot-cpp
-          cl
           scons generate_bindings=yes target=release -j2
       
       - name: Compile binary
+        shell: cmd
         run: |
-          cl
           scons platform=windows target=release
       
       - name: list output

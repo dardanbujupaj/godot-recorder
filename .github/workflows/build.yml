@@ -21,7 +21,7 @@ jobs:
 
       # Runs a single command using the runners shell
       - name: Install scons
-        run: pip install scons
+        run: brew install scons
 
       # Runs a set of commands using the runners shell
       - name: Compile headers
@@ -46,7 +46,7 @@ jobs:
 
       # Runs a single command using the runners shell
       - name: Install scons
-        run: pip install scons
+        run: brew install scons
 
       # Runs a set of commands using the runners shell
       - name: Compile headers
@@ -77,10 +77,13 @@ jobs:
       - name: Compile headers
         run: |
           cd godot-cpp
+          cl
           scons generate_bindings=yes target=release -j2
       
       - name: Compile binary
-        run: scons platform=windows target=release
+        run: |
+          cl
+          scons platform=windows target=release
       
       - name: list output
         run: ls -lah addons/dardanbujupaj.recorder/gif-exporter/bin/windows/*

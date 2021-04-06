@@ -118,6 +118,8 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
+      # delete old binaries
+      - run: rm ${{env.linux-binary-path}} ${{env.macos-binary-path}} ${{env.windows-binary-path}}
 
       - uses: actions/download-artifact@v2
         with:

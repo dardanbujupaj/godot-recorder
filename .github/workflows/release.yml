@@ -33,13 +33,11 @@ jobs:
       version: ${{ steps.get-release-version.outputs.VERSION}}
 
     steps:
-      - uses: actions/checkout@v2
-
       - name: Install semver
         run: sudo npm install -g semver
 
       - id: previous-version
-        run: echo "::set-output name=PREVIOUS_VERSION::$(semver $(git tag | sort -V | tail -n1))"
+        run: echo "::set-output name=PREVIOUS_VERSION::$(semver $(git ls-remote --refs --tags https://github.com/dardanbujupaj/godot-recorder | tail -n1 | sed 's/.*\///; s/\^{}//'))"
 
       - id: get-release-version
         run: echo "::set-output name=VERSION::$(semver ${{ github.event.inputs.tag }})"

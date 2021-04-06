@@ -29,7 +29,7 @@ jobs:
   release-version:
     runs-on: ubuntu-latest
 
-    output:
+    outputs:
       version: ${{ steps.release-version.outputs.VERSION}}
 
     steps:
@@ -211,22 +211,26 @@ jobs:
           name: windows-binary
           path: ${{env.windows-binary-path}}
 
-      - run: sed 's/version.*/version.*/' ${{ env.plugin-configuration }}
-
-      - name: Commit release
+      - name: Update plugin configuration version
+        run: sed 's/version.*/version.*/' ${{ env.plugin-configuration }}
+      
+      - name: Configurate git
         run: |
           git config --global user.name 'Github Action'
           git config --global user.email 'dardanbujupaj@users.noreply.github.com
+        
+      - name: Commit release
+        run: |
           git add ${{ env.plugin-configuration }}
           git add -f ${{ env.linux-binary-path }} ${{ env.macos-binary-path }} ${{ env.windows-binary-path }}
-          git commit -am "Update binaries for release ${{ github.event.inputs.tag }}"
+          git commit -am "Update binaries for release ${{ jobs.release-version.outputs.version }}"
           git push
 
       - name: Tag release
         run: |
           git config --global user.name 'Github Action'
           git config --global user.email 'dardanbujupaj@users.noreply.github.com'
-          git tag ${{ github.event.inputs.tag }}
+          git tag ${{ jobs.release-version.outputs.version }}
           git push --tags
 
 

@@ -213,7 +213,7 @@ jobs:
           path: ${{env.windows-binary-path}}
 
       - name: Update plugin configuration version
-        run: sed -i '' 's/version.*/version="${{env.version}}"/' ${{ env.plugin-configuration }}
+        run: sed -i 's/version.*/version="${{env.version}}"/' ${{ env.plugin-configuration }}
       
       - name: Configurate git
         run: |

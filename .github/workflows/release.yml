@@ -36,7 +36,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Install semver
-        run: npm install -g semver
+        run: sudo npm install -g semver
 
       - id: previous-version
         run: echo "::set-output name=PREVIOUS_VERSION::$(semver $(git tag | sort -V | tail -n1))"

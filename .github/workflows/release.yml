@@ -183,6 +183,9 @@ jobs:
 
     needs: [release-version, build-linux, build-macos, build-macos-arm64, build-windows]
 
+    env:
+      version: ${{ jobs.release-version.outputs.version }}
+
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
@@ -212,7 +215,7 @@ jobs:
           path: ${{env.windows-binary-path}}
 
       - name: Update plugin configuration version
-        run: sed 's/version.*/version.*/' ${{ env.plugin-configuration }}
+        run: sed 's/version.*/version="${{env.version}}"/' ${{ env.plugin-configuration }}
       
       - name: Configurate git
         run: |
@@ -223,14 +226,14 @@ jobs:
         run: |
           git add ${{ env.plugin-configuration }}
           git add -f ${{ env.linux-binary-path }} ${{ env.macos-binary-path }} ${{ env.windows-binary-path }}
-          git commit -am "Update binaries for release ${{ jobs.release-version.outputs.version }}"
+          git commit -am "Update binaries for release ${{ env.version }}"
           git push
 
       - name: Tag release
         run: |
           git config --global user.name 'Github Action'
           git config --global user.email 'dardanbujupaj@users.noreply.github.com'
-          git tag ${{ jobs.release-version.outputs.version }}
+          git tag ${{ env-version }}
           git push --tags
 
 

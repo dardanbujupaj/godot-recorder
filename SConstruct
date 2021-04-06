@@ -11,6 +11,7 @@ env = Environment(ENV = os.environ)
 opts.Add(EnumVariable('target', "Compilation target", 'debug', ['d', 'debug', 'r', 'release']))
 opts.Add(EnumVariable('platform', "Compilation platform", '', ['', 'windows', 'x11', 'linux', 'osx', 'macos']))
 opts.Add(EnumVariable('p', "Compilation target, alias for 'platform'", '', ['', 'windows', 'x11', 'linux', 'osx', 'macos']))
+opts.Add(EnumVariable('arch', "Compilation architecture", 'x86_64', ['x86_64', 'arm64']))
 opts.Add(BoolVariable('use_llvm', "Use the LLVM / Clang compiler", 'no'))
 opts.Add(PathVariable('target_path', 'The path where the lib is installed.', 'addons/dardanbujupaj.recorder/gif-exporter/bin/'))
 opts.Add(PathVariable('target_name', 'The library name.', 'libexporter', PathVariable.PathAccept))
@@ -50,9 +51,9 @@ if env['platform'] == '':
 if env['platform'] in ('osx', 'macos'):
     env['target_path'] += 'macos/'
     cpp_library += '.osx'
-    env.Append(CCFLAGS=['-arch', 'x86_64'])
+    env.Append(CCFLAGS=['-arch', env['arch']])
     env.Append(CXXFLAGS=['-std=c++17'])
-    env.Append(LINKFLAGS=['-arch', 'x86_64'])
+    env.Append(LINKFLAGS=['-arch', env['arch']])
     if env['target'] in ('debug', 'd'):
         env.Append(CCFLAGS=['-g', '-O2'])
     else:
@@ -102,7 +103,7 @@ env.Append(LIBS=[cpp_library])
 env.Append(CPPPATH=['src/'])
 sources = Glob('src/*.cpp')
 
-library = env.SharedLibrary(target=env['target_path'] + env['target_name'] , source=sources)
+library = env.SharedLibrary(target=env['target_path'] + env['target_name'] + '-' + env['arch'] , source=sources)
 
 Default(library)
 

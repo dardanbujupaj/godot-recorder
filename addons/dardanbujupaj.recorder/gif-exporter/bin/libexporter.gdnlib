@@ -7,12 +7,14 @@ reloadable=true
 
 [entry]
 
-OSX.64="res://addons/dardanbujupaj.recorder/gif-exporter/bin/macos/libexporter.dylib"
-Windows.64="res://addons/dardanbujupaj.recorder/gif-exporter/bin/windows/libexporter.dll"
-X11.64="res://addons/dardanbujupaj.recorder/gif-exporter/bin/linux/libexporter.so"
+OSX.arm64="res://addons/dardanbujupaj.recorder/gif-exporter/bin/macos/libexporter-arm64.dylib"
+OSX.64="res://addons/dardanbujupaj.recorder/gif-exporter/bin/macos/libexporter-x86_64.dylib"
+Windows.64="res://addons/dardanbujupaj.recorder/gif-exporter/bin/windows/libexporter-x86_64.dll"
+X11.64="res://addons/dardanbujupaj.recorder/gif-exporter/bin/linux/libexporter-x86_64.so"
 
 [dependencies]
 
+OSX.arm64=[  ]
 OSX.64=[  ]
 Windows.64=[  ]
 X11.64=[  ]

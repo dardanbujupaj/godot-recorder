@@ -93,6 +93,13 @@ opts.Add(EnumVariable(
     '64' if is64 else '32',
     ('32', '64')
 ))
+opts.Add(EnumVariable(
+    'arch',
+    'macos target architecture',
+    'x86_64',
+    allowed_values=('x86_64', 'arm64'),
+    ignorecase=2
+))
 opts.Add(BoolVariable(
     'use_llvm',
     'Use the LLVM compiler - only effective when targeting Linux',
@@ -213,14 +220,14 @@ elif env['platform'] == 'osx':
             'Only 64-bit builds are supported for the macOS target.'
         )
 
-    env.Append(CCFLAGS=['-std=c++14', '-arch', 'x86_64'])
+    env.Append(CCFLAGS=['-std=c++14', '-arch', env['arch']])
 
     if env['macos_deployment_target'] != 'default':
         env.Append(CCFLAGS=['-mmacosx-version-min=' + env['macos_deployment_target']])
 
     env.Append(LINKFLAGS=[
         '-arch',
-        'x86_64',
+        env['arch'],
         '-framework',
         'Cocoa',
         '-Wl,-undefined,dynamic_lookup',

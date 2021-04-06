@@ -11,6 +11,8 @@
 /default_env.tres    export-ignore
 /icon.png            export-ignore
 /icon.png.import     export-ignore
+/icon.svg            export-ignore
+/icon.svg.import     export-ignore
 /godot-cpp/          export-ignore
 /src/                export-ignore
 /test/               export-ignore

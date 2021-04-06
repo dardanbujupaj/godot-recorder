@@ -14,9 +14,12 @@ on:
 
 
 env:
-  linux-binary-path: addons/dardanbujupaj.recorder/gif-exporter/bin/linux/libexporter.so
-  macos-binary-path: addons/dardanbujupaj.recorder/gif-exporter/bin/macos/libexporter.dylib
-  windows-binary-path: addons/dardanbujupaj.recorder/gif-exporter/bin/windows/libexporter.dll
+  linux-binary-path: addons/dardanbujupaj.recorder/gif-exporter/bin/linux/
+  linux-binary-filename: libexporter.so
+  macos-binary-path: addons/dardanbujupaj.recorder/gif-exporter/bin/macos/
+  macos-binary-filename: libexporter.dylib
+  windows-binary-path: addons/dardanbujupaj.recorder/gif-exporter/bin/windows/
+  windows-binary-filename: libexporter.dll
 
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
@@ -129,7 +132,7 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: macos-binary
-          path: ${{env.mac-binary-path}}
+          path: ${{env.macos-binary-path}}
 
       - uses: actions/download-artifact@v2
         with:

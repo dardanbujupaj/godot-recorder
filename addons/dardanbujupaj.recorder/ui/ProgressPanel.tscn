@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=2]
+[gd_scene load_steps=3 format=2]
 
 [ext_resource path="res://addons/dardanbujupaj.recorder/ui/ProgressPanel.gd" type="Script" id=1]
+[ext_resource path="res://addons/dardanbujupaj.recorder/ui/ui_theme.tres" type="Theme" id=2]
 
 [node name="ProgressPanel" type="PanelContainer"]
 visible = false
@@ -13,6 +14,7 @@ margin_top = -46.0
 margin_right = 102.5
 grow_horizontal = 2
 grow_vertical = 0
+theme = ExtResource( 2 )
 script = ExtResource( 1 )
 __meta__ = {
 "_edit_use_anchors_": false

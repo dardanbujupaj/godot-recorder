@@ -184,7 +184,7 @@ jobs:
     needs: [release-version, build-linux, build-macos, build-macos-arm64, build-windows]
 
     env:
-      version: ${{ jobs.release-version.outputs.version }}
+      version: ${{ needs.release-version.outputs.version }}
 
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it

@@ -218,7 +218,7 @@ jobs:
       - name: Configurate git
         run: |
           git config --global user.name 'Github Action'
-          git config --global user.email 'dardanbujupaj@users.noreply.github.com
+          git config --global user.email 'dardanbujupaj@users.noreply.github.com'
         
       - name: Commit release
         run: |

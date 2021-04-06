@@ -3,8 +3,8 @@
 /.gitignore          export-ignore
 /.github/            export-ignore
 /LICENSE             export-ignore
-/README.adoc         export-ignore
-/CHANGELOG.adoc      export-ignore
+/README.md           export-ignore
+/CHANGELOG.md        export-ignore
 /project.godot       export-ignore
 /.vscode             export-ignore
 /SConstruct          export-ignore

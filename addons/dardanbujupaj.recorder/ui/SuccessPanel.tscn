@@ -1,0 +1,44 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://addons/dardanbujupaj.recorder/ui/SuccessPanel.gd" type="Script" id=1]
+
+[node name="SuccessPanel" type="PanelContainer"]
+visible = false
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+margin_left = -102.5
+margin_top = -46.0
+margin_right = 102.5
+grow_horizontal = 2
+grow_vertical = 0
+script = ExtResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+margin_left = 7.0
+margin_top = 7.0
+margin_right = 198.0
+margin_bottom = 39.0
+
+[node name="Success" type="Label" parent="VBoxContainer"]
+margin_right = 191.0
+margin_bottom = 14.0
+text = "Export successful!"
+align = 1
+
+[node name="ShowFileManager" type="LinkButton" parent="VBoxContainer"]
+margin_top = 18.0
+margin_right = 191.0
+margin_bottom = 32.0
+focus_mode = 2
+text = "Show in File Manager"
+
+[node name="Timer" type="Timer" parent="."]
+one_shot = true
+
+[connection signal="pressed" from="VBoxContainer/ShowFileManager" to="." method="_on_ShowFileManager_pressed"]
+[connection signal="timeout" from="Timer" to="." method="_on_Timer_timeout"]

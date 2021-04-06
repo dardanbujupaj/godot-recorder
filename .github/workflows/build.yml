@@ -8,9 +8,9 @@ on:
   workflow_dispatch:
     inputs:
       tag: 
-        description: 'Release tag'     
+        description: 'Release version'     
         required: true
-        default: 'v0.0.0'
+        default: '1.0.0'
 
 
 env:
@@ -21,14 +21,39 @@ env:
   macos-binary-filename-arm64: libexporter-arm64.dylib
   windows-binary-path: addons/dardanbujupaj.recorder/gif-exporter/bin/windows/
   windows-binary-filename: libexporter-x86_64.dll
+  plugin-configuration: addons/dardanbujupaj.recorder/plugin.cfg
 
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
+  release-version:
+    runs-on: ubuntu-latest
+
+    output:
+      version: ${{ steps.release-version.outputs.VERSION}}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install semver
+        run: npm install -g semver
+
+      - id: previous-version
+        run: ::set-output name=PREVIOUS_VERSION::$(semver $(git tag | sort -V | tail -n1))
+
+      - id: release-version
+        run: ::set-output name=VERSION::$(semver ${{ github.event.inputs.tag }})
+      
+      - id: check-version-increment
+        run: semver -r ">${{steps.release-version.outputs.PREVIOUS_VERSION}}" ${{steps.release-version.outputs.PREVIOUS_VERSION}}
+
+
   # This workflow contains a single job called "build"
   build-linux:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
+
+    needs: release-version
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -58,6 +83,9 @@ jobs:
     # The type of runner that the job will run on
     runs-on: macos-latest
 
+    needs: release-version
+
+
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
@@ -84,6 +112,8 @@ jobs:
   build-macos-arm64:
     # The type of runner that the job will run on
     runs-on: macos-latest
+
+    needs: release-version
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -112,11 +142,14 @@ jobs:
         with:
           name: macos-binary-arm64
           path: ${{env.macos-binary-path}}${{env.macos-binary-filename-arm64}}
-    
+  
+
 
   build-windows:
     # The type of runner that the job will run on
     runs-on: windows-latest
+  
+    needs: release-version
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -143,7 +176,7 @@ jobs:
         with:
           name: windows-binary
           path: ${{env.windows-binary-path}}${{env.windows-binary-filename}}
-  
+      
   
   tag-release:
     runs-on: ubuntu-latest
@@ -178,12 +211,14 @@ jobs:
           name: windows-binary
           path: ${{env.windows-binary-path}}
 
+      - run: sed 's/version.*/version.*/' ${{ env.plugin-configuration }}
 
-      - name: Commit binaries
+      - name: Commit release
         run: |
           git config --global user.name 'Github Action'
-          git config --global user.email 'dardanbujupaj@users.noreply.github.com'
-          git add -f ${{env.linux-binary-path}} ${{env.macos-binary-path}} ${{env.windows-binary-path}}
+          git config --global user.email 'dardanbujupaj@users.noreply.github.com
+          git add ${{ env.plugin-configuration }}
+          git add -f ${{ env.linux-binary-path }} ${{ env.macos-binary-path }} ${{ env.windows-binary-path }}
           git commit -am "Update binaries for release ${{ github.event.inputs.tag }}"
           git push
 

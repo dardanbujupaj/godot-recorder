@@ -50,7 +50,7 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: linux-binary
-          path: ${{env.linux-binary-path}}
+          path: ${{env.linux-binary-path}}${{env.linux-binary-filename}}
 
 
   build-macos:
@@ -78,7 +78,7 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: macos-binary
-          path: ${{env.macos-binary-path}}
+          path: ${{env.macos-binary-path}}${{env.macos-binary-filename}}
     
 
   build-windows:
@@ -109,7 +109,7 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: windows-binary
-          path: ${{env.windows-binary-path}}
+          path: ${{env.windows-binary-path}}${{env.windows-binary-filename}}
   
   
   tag-release:
@@ -122,7 +122,8 @@ jobs:
       - uses: actions/checkout@v2
 
       # delete old binaries
-      - run: rm ${{env.linux-binary-path}} ${{env.macos-binary-path}} ${{env.windows-binary-path}}
+      - run: rm -f ${{env.linux-binary-path}} ${{env.macos-binary-path}} ${{env.windows-binary-path}}
+      - run: mkdir ${{env.linux-binary-path}} ${{env.macos-binary-path}} ${{env.windows-binary-path}}
 
       - uses: actions/download-artifact@v2
         with:

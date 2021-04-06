@@ -13,6 +13,12 @@ on:
         default: 'v0.0.0'
 
 
+env:
+  linux-binary-path: addons/dardanbujupaj.recorder/gif-exporter/bin/linux/libexporter.so
+  macos-binary-path: addons/dardanbujupaj.recorder/gif-exporter/bin/macos/libexporter.dylib
+  windows-binary-path: addons/dardanbujupaj.recorder/gif-exporter/bin/windows/libexporter.dll
+
+
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
@@ -37,15 +43,11 @@ jobs:
       
       - name: Compile binary
         run: scons platform=linux target=release
-      
-      - name: Commit linux binary
-        run: |
-          git config --global user.name 'Github Action'
-          git config --global user.email 'dardanbujupaj@users.noreply.github.com'
-          git pull
-          git add .
-          git commit -am "Update linux binary for release ${{ github.event.inputs.tag }}"
-          git push
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: linux-binary
+          path: ${{env.linux-binary-path}}
 
 
   build-macos:
@@ -69,15 +71,11 @@ jobs:
       
       - name: Compile binary
         run: scons platform=macos target=release
-      
-      - name: Commit macos binary
-        run: |
-          git config --global user.name 'Github Action'
-          git config --global user.email 'dardanbujupaj@users.noreply.github.com'
-          git pull
-          git add .
-          git commit -am "Update macos binary for release ${{ github.event.inputs.tag }}"
-          git push
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: macos-binary
+          path: ${{env.macos-binary-path}}
     
 
   build-windows:
@@ -105,14 +103,10 @@ jobs:
         run: |
           scons platform=windows target=release
       
-      - name: Commit windows binary
-        run: |
-          git config --global user.name 'Github Action'
-          git config --global user.email 'dardanbujupaj@users.noreply.github.com'
-          git pull
-          git add .
-          git commit -am "Update windows binary for release ${{ github.event.inputs.tag }}"
-          git push
+      - uses: actions/upload-artifact@v2
+        with:
+          name: windows-binary
+          path: ${{env.windows-binary-path}}
   
   
   tag-release:
@@ -124,7 +118,32 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
-      - name: Commit windows binary
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: linux-binary
+          path: ${{env.linux-binary-path}}
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: macos-binary
+          path: ${{env.mac-binary-path}}
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: windows-binary
+          path: ${{env.windows-binary-path}}
+
+
+      - name: Commit binaries
+        run: |
+          git config --global user.name 'Github Action'
+          git config --global user.email 'dardanbujupaj@users.noreply.github.com'
+          git add -f ${{env.linux-binary-path}} ${{env.macos-binary-path}} ${{env.windows-binary-path}}
+          git commit -am "Update binaries for release ${{ github.event.inputs.tag }}"
+          git push
+
+      - name: Tag release
         run: |
           git config --global user.name 'Github Action'
           git config --global user.email 'dardanbujupaj@users.noreply.github.com'

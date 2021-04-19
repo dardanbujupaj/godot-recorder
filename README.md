@@ -1,5 +1,4 @@
 # godot-recorder
-
 Addon to record a viewport in Godot and automatically convert the recording into an animation.
 
 ## Usage
@@ -11,15 +10,31 @@ The **R**-Key is used to start/stop the recording by default. This can be change
 
 
 ## Configuration
+
 ### Framerate
 The framerate of the recording.
-Make sure to pick a value thats actually possible to record. (0 < framrate <= 60 should be reasonable)
+Make sure to pick a value thats actually possible to record. (If you're using a framerate higher than the one your game is running at, you will get strange results. Also GIF allows maximal Framerate of 50)
 Higher framerate will give you smoother animations but will also make the filesize larger.
+
+
+### Animation format
+Currently there are two available formats to export an animation to:
+
+#### GIF
+Produces a GIF of the recording. 
+Support on basically every platforms and probably the format you want to go for.
+
+#### APNG (Animated PNG)
+The resulting file is an [animated PNG](https://developer.mozilla.org/en-US/docs/Mozilla/Tech/APNG).
+Animated PNGs are supported by all modern browsers.
+
+#### PNG sequence
+Animation is stored as a series of PNG-images.
+The filenames are extended with the index of the animation (e.g \_0001.png, \_0002.png, ...).
 
 
 ### Color type
 You can choose between four color types.
-
 
 | Color type | Color | Transparent | Byte/Pixel |
 |-|:-:|:-:|:-:|
@@ -30,16 +45,8 @@ You can choose between four color types.
 
 On way to make use of of the transparent types (Alpha), is to make the background of the viewport transparent. (`get_viewport().transparent_bg = true` in GDScript)
 
-### Animation format
-Currently there are two available formats to export an animation to:
+Note that this won't work for GIFs as the library used only supports RBGA Input but ignores the transparency value (A). You may still choose to use Greyscale color type, which will record the frames in greyscale.
 
-#### APNG (Animated PNG)
-The resulting file is an [animated PNG](https://developer.mozilla.org/en-US/docs/Mozilla/Tech/APNG).
-Animated PNGs are supported by all modern browsers.
-
-#### PNG sequence
-Animation is stored as a series of PNG-images.
-The filenames are extended with the index of the animation (e.g \_0001.png, \_0002.png, ...).
 
 ### Trigger
 This option sets the event which starts/stops the recording.
@@ -54,20 +61,17 @@ This is set to [user://](https://docs.godotengine.org/en/stable/tutorials/io/dat
 
 # Development
 ## Build binaries
-
 Use the following code to build linux binaries
 ```
-scons platform=linux
+# generate c++ bindings 
+cd godot-cpp
+scons platform=linux target=release generate_bindings=yes -j4
+
+# build binaries
+scons platform=linux target=release -j4
 ```
 
 
-
-## TODO
-- Implement exporter (ffmpeg wrapper)
-  - https://github.com/leandromoreira/ffmpeg-libav-tutorial
-- Github workflow to release versions
-  1. create binaries for every platform and upload as artifacts
-    - https://github.com/actions/upload-artifact
-  2. Download all artifacts and commit to repository
-    - https://github.com/actions/download-artifact
-  3. create tag
+## Roadmap
+I'm still trying to get ffmpeg to work with the Godot cpp bindings.
+This would allow for a lot more 
